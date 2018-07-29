@@ -11,10 +11,10 @@ class ScreenComponentMovies extends React.Component {
   })
 
   state = {
-    movies: [{Title: '', Year:'', imdbID: '', Type: '', Poster:'http://via.placeholder.com/200x200',}],
+    movies: [],
     totalResults: '',
     Response: '',
-    query: 'Action',
+    query: '',
     isMounted: false,
   }
 
@@ -47,6 +47,7 @@ class ScreenComponentMovies extends React.Component {
         showDetail={() => {this.props.navigation.navigate('ScreenDetail',{
                 title: item.Title, })
         }} key={item.Title}/>
+
   render() {
     return (
       <View style={{padding: 10,}}>
@@ -54,11 +55,13 @@ class ScreenComponentMovies extends React.Component {
           <TextInput style={styles.textInput} placeholder={'Search'} onChangeText={this.handleFetchRequest}/>
         </View>
 
+      if(this.state.movies !== []) {
         <FlatList
           data={this.state.movies}
           renderItem={this.renderItem}
           keyExtractor={(item, index) => `${index}`}>
         </FlatList>
+      }
       </View>
     );
   }
