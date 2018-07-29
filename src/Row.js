@@ -4,7 +4,9 @@ import {TouchableOpacity, View, Image, Text, StyleSheet,} from 'react-native';
 const Row = props => (
   <TouchableOpacity style={styles.row}
     onPress={props.showDetail}>
-    <Image source={{uri: props.Poster }} style={styles.image}/>
+    if(props.Poster !== '') {
+      <Image source={{uri: props.Poster }} style={styles.image}/>
+    }
      <View style={styles.view}>
       <Text style={styles.title}>{props.Title}</Text>
       <Text>{"Year: " + props.Year}</Text>
@@ -19,7 +21,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     borderWidth: 1,
-    margin: 5,
     },
     title:{
       paddingBottom: 5,

@@ -13,22 +13,36 @@ class ScreenComponentDetail extends React.Component {
     Runtime: '',
     Genre: '',
     Director: '',
-    Poster: '',
+    Poster: 'http://via.placeholder.com/200x200',
     Plot: '',
     Ratings: [{Source: '', Value: '',}],
+    isMounted: false,
   }
 
   static navigationOptions = ({navigation}) => ({
     headerTitle: navigation.getParam('title'),
   })
 
+  componentDidMount() {
+    this.mounted = true
+  }
+
+  componentWillUnmount() {
+    this.mounted = false
+  }
+
   fetchMovieDetail = async (title) => {
-    const response = await fetch("http://www.omdbapi.com/?apikey=eeb1be17&t=" + title)
-    const results = await response.json()
-    this.setState({...results})
+    try {
+      const response = await fetch("http://www.omdbapi.com/?apikey=eeb1be17&t=" + title)
+      const results = await response.json()
+      if(this.mounted) {this.setState({...results}) }
+    } catch(e) {
+      console.log(e)
+    }
   }
 
   render() {
+
     const {
       Title,
       Year,
@@ -39,17 +53,18 @@ class ScreenComponentDetail extends React.Component {
       Director,
       Poster,
       Plot,
-      Ratings,} = this.state
+      Ratings,} =  this.state
 
       const { width, height } = Dimensions.get('window')
       const {navigation} = this.props
       this.fetchMovieDetail(navigation.getParam('title'))
     return (
-      <ScrollView style={{flex: 1,paddingTop: 5,}}>
-        <Image  source={{uri: this.state.Poster}}
-                style={{width: width, height: height / 2,
-                paddingBottom: 10,}}/>
-
+      <ScrollView style={{flex: 1,paddingTop: 5,}} key={Title}>
+        if(this.state.Poster !== '') {
+          <Image  source={{uri: this.state.Poster}}
+                  style={{width: width, height: height / 2,
+                  paddingBottom: 10,}}/>
+        }
         <Text style={styles.title}>{Title}</Text>
         <Text style={styles.text}>
             {Rated  + ' ' + ` (${Runtime})`}
@@ -57,9 +72,9 @@ class ScreenComponentDetail extends React.Component {
         <Text style={styles.text}>{Plot}</Text>
         <Text style={styles.text}>{'Directd by: ' + Director}</Text>
         <Text style={styles.text}>Ratings</Text>
-        {Ratings.map(rating => <DetailRow  {...rating} />)}
+        {Ratings.map(rating => <DetailRow  {...rating} key={rating.Source}/>)}
       </ScrollView>
-      );
+    );
   }
 }
 

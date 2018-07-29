@@ -1,5 +1,5 @@
 import React from 'react';
-import {FlatList, Text, Image, View} from 'react-native';
+import {FlatList, Text, Image, View, TextInput, StyleSheet} from 'react-native';
 import Row from '../src/Row';
 
 class ScreenComponentMovies extends React.Component {
@@ -11,35 +11,66 @@ class ScreenComponentMovies extends React.Component {
   })
 
   state = {
-    movies: [{Title: '', Year:'', imdbID: '', Type: '', Poster:'',}],
+    movies: [{Title: '', Year:'', imdbID: '', Type: '', Poster:'http://via.placeholder.com/200x200',}],
     totalResults: '',
     Response: '',
+    query: 'Action',
+    isMounted: false,
   }
 
   componentDidMount() {
+    this.setState({isMounted: true})
     this.fetchMovies()
   }
 
-  fetchMovies = async () => {
-    const response = await fetch("http://www.omdbapi.com/?apikey=eeb1be17&s=action")
-    const results = await response.json()
-    this.setState({movies: [...results['Search']]})
+  componentWillUnmount() {
+    this.setState({isMounted: false})
+  }
+
+  fetchMovies = async (query) => {
+    try {
+      const response = await fetch("http://www.omdbapi.com/?apikey=eeb1be17&s=" + this.state.query)
+      const results = await response.json()
+      if(this.state.isMounted) {this.setState({movies: [...results['Search']]})}
+    } catch(e) {
+      console.log(e)
+    }
+  }
+
+  handleFetchRequest = query => {
+    this.setState({query})
+    this.fetchMovies(this.state.query)
   }
 
   renderItem = ({item}) =>
         <Row {...item}
         showDetail={() => {this.props.navigation.navigate('ScreenDetail',{
                 title: item.Title, })
-        }}/>
-
+        }} key={item.Title}/>
   render() {
     return (
-      <FlatList
-        data={this.state.movies}
-        renderItem={this.renderItem}>
-      </FlatList>
+      <View style={{padding: 10,}}>
+        <View style={{paddingBottom: 5, paddingTop: 5,}}>
+          <TextInput style={styles.textInput} placeholder={'Search'} onChangeText={this.handleFetchRequest}/>
+        </View>
+
+        <FlatList
+          data={this.state.movies}
+          renderItem={this.renderItem}
+          keyExtractor={(item, index) => `${index}`}>
+        </FlatList>
+      </View>
     );
   }
 }
+
+const styles = StyleSheet.create({
+    textInput: {
+      borderWidth: 1,
+      borderColor: 'black',
+      height: 35,
+      padding: 10,
+    }
+})
 
 export default ScreenComponentMovies;
