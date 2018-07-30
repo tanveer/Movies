@@ -15,31 +15,49 @@ class ScreenComponentMovies extends React.Component {
     totalResults: '',
     Response: '',
     query: '',
-    isMounted: false,
+    page: 1,
   }
 
   componentDidMount() {
-    this.setState({isMounted: true})
-    this.fetchMovies()
+    this.mounted = true
   }
 
   componentWillUnmount() {
-    this.setState({isMounted: false})
+    this.mounted = false
+    this.setState({movies: [], totalResults: '', page: 1})
   }
 
-  fetchMovies = async (query) => {
+  fetchMovies = async () => {
+    const {query, page} = this.state
     try {
-      const response = await fetch("http://www.omdbapi.com/?apikey=eeb1be17&s=" + this.state.query)
+      const response = await fetch(`http://www.omdbapi.com/?apikey=eeb1be17&s=${query}&page=${page}`)
       const results = await response.json()
-      if(this.state.isMounted) {this.setState({movies: [...results['Search']]})}
+      if(this.mounted){
+        this.setState({
+        movies: [...this.state.movies, ...results.Search],
+        totalResults: results.totalResults})
+      }
     } catch(e) {
       console.log(e)
     }
   }
 
   handleFetchRequest = query => {
-    this.setState({query})
-    this.fetchMovies(this.state.query)
+    if(query === '') {
+      this.setState({movies: [], totalResults: '', page: 1})
+    }
+      this.setState({query}, () => {
+        this.fetchMovies()
+      })
+
+  }
+
+  handleLoadMoreMovies = () => {
+    if(+this.state.totalResults > this.state.movies.length) {
+      this.setState({page: this.state.page + 1}, () => {
+        this.fetchMovies()
+      })
+    }
   }
 
   renderItem = ({item}) =>
@@ -53,12 +71,15 @@ class ScreenComponentMovies extends React.Component {
       <View style={{padding: 10,}}>
         <View style={{paddingBottom: 5, paddingTop: 5,}}>
           <TextInput style={styles.textInput} placeholder={'Search'} onChangeText={this.handleFetchRequest}/>
+          <Text>{this.state.page}</Text>
         </View>
 
       if(this.state.movies !== []) {
         <FlatList
           data={this.state.movies}
           renderItem={this.renderItem}
+          onEndReached={this.handleLoadMoreMovies}
+          onEndThreshold={0}
           keyExtractor={(item, index) => `${index}`}>
         </FlatList>
       }
